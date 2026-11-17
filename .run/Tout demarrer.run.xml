@@ -1,0 +1,10 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="0 - Tout demarrer" type="CompoundRunConfigurationType">
+    <toRun name="1 - discovery-server" type="Application" />
+    <toRun name="2 - etudiant-service" type="Application" />
+    <toRun name="3 - cours-service" type="Application" />
+    <toRun name="4 - inscription-service" type="Application" />
+    <toRun name="5 - api-gateway" type="Application" />
+    <method v="2" />
+  </configuration>
+</component>

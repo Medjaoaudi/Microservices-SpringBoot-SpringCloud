@@ -155,6 +155,18 @@ java -jar api-gateway/target/api-gateway-1.0.0.jar
 cd frontend && npm install && npm run dev
 ```
 
+### 4.4 Dans IntelliJ IDEA
+
+1. `File > Open` → sélectionner le dossier `scolarite-microservices` (le `pom.xml` parent est détecté, les 5 modules sont importés).
+2. En haut à droite, la liste des configurations contient déjà (dossier `.run/`) :
+   `1 - discovery-server`, `2 - etudiant-service`, `3 - cours-service`, `4 - inscription-service`, `5 - api-gateway`
+   et **`0 - Tout demarrer`** (lance les 5 d'un coup ; les services s'enregistrent dans Eureka dès qu'il est prêt, ~10 s).
+   Pour une démo propre : lancer `1 - discovery-server`, attendre ~10 s, puis `0 - Tout demarrer` (ou les autres un par un).
+3. Le front se lance à part : `cd frontend && npm run dev`.
+4. Ouvrir `docs/requests.http` : cliquer sur ▶ à côté d'une requête pour l'envoyer (client HTTP intégré à IntelliJ).
+
+Pour le profil MySQL : `Run > Edit Configurations` → champ *Program arguments* : `--spring.profiles.active=mysql`.
+
 ---
 
 ## 5. URLs utiles
