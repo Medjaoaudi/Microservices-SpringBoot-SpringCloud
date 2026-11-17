@@ -1,0 +1,1044 @@
+{
+  "info": {
+    "_postman_id": "c5c50bfd-6340-428c-af29-ecccc4cfbbdf",
+    "name": "Scolarité universitaire - microservices",
+    "description": "Tous les appels passent par l'API Gateway (http://localhost:8888). Section 4 : démo de panne (arrêter etudiant-service avant).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "0. Infrastructure",
+      "item": [
+        {
+          "name": "Registre Eureka (JSON)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{eureka}}/eureka/apps",
+              "host": [
+                "{{eureka}}"
+              ],
+              "path": [
+                "eureka",
+                "apps"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Routes de la Gateway",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{gateway}}/actuator/gateway/routes",
+              "host": [
+                "{{gateway}}"
+              ],
+              "path": [
+                "actuator",
+                "gateway",
+                "routes"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Routage dynamique (discovery locator)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{gateway}}/etudiant-service/api/etudiants?size=3",
+              "host": [
+                "{{gateway}}"
+              ],
+              "path": [
+                "etudiant-service",
+                "api",
+                "etudiants"
+              ],
+              "query": [
+                {
+                  "key": "size",
+                  "value": "3"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "1. Étudiants",
+      "item": [
+        {
+          "name": "Lister (paginé, trié)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{gateway}}/api/etudiants?page=0&size=5&sort=nom,asc",
+              "host": [
+                "{{gateway}}"
+              ],
+              "path": [
+                "api",
+                "etudiants"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "5"
+                },
+                {
+                  "key": "sort",
+                  "value": "nom,asc"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Consulter par id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{gateway}}/api/etudiants/1",
+              "host": [
+                "{{gateway}}"
+              ],
+              "path": [
+                "api",
+                "etudiants",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Consulter par matricule",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{gateway}}/api/etudiants/matricule/ETU-2026-003",
+              "host": [
+                "{{gateway}}"
+              ],
+              "path": [
+                "api",
+                "etudiants",
+                "matricule",
+                "ETU-2026-003"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Rechercher (nom, filière, niveau)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{gateway}}/api/etudiants/search?nom=ben&filiere=GL&niveau=5",
+              "host": [
+                "{{gateway}}"
+              ],
+              "path": [
+                "api",
+                "etudiants",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "nom",
+                  "value": "ben"
+                },
+                {
+                  "key": "filiere",
+                  "value": "GL"
+                },
+                {
+                  "key": "niveau",
+                  "value": "5"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Existe ?",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{gateway}}/api/etudiants/exists/1",
+              "host": [
+                "{{gateway}}"
+              ],
+              "path": [
+                "api",
+                "etudiants",
+                "exists",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Créer",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{gateway}}/api/etudiants",
+              "host": [
+                "{{gateway}}"
+              ],
+              "path": [
+                "api",
+                "etudiants"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"matricule\": \"ETU-2026-011\",\n  \"nom\": \"Karray\",\n  \"prenom\": \"Malek\",\n  \"email\": \"malek.karray@etudiant.eps.tn\",\n  \"telephone\": \"+216 22 345 678\",\n  \"dateNaissance\": \"2003-04-12\",\n  \"filiere\": \"GL\",\n  \"niveau\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Créer - données invalides (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{gateway}}/api/etudiants",
+              "host": [
+                "{{gateway}}"
+              ],
+              "path": [
+                "api",
+                "etudiants"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"matricule\": \"X\",\n  \"nom\": \"\",\n  \"prenom\": \"Test\",\n  \"email\": \"pas-un-email\",\n  \"filiere\": \"GL\",\n  \"niveau\": 9\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Créer - matricule en double (409)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{gateway}}/api/etudiants",
+              "host": [
+                "{{gateway}}"
+              ],
+              "path": [
+                "api",
+                "etudiants"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"matricule\": \"ETU-2026-001\",\n  \"nom\": \"Doublon\",\n  \"prenom\": \"Test\",\n  \"email\": \"doublon@etudiant.eps.tn\",\n  \"filiere\": \"GL\",\n  \"niveau\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Modifier",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{gateway}}/api/etudiants/10",
+              "host": [
+                "{{gateway}}"
+              ],
+              "path": [
+                "api",
+                "etudiants",
+                "10"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"matricule\": \"ETU-2026-010\",\n  \"nom\": \"Dridi\",\n  \"prenom\": \"Emna\",\n  \"email\": \"emna.dridi@etudiant.eps.tn\",\n  \"telephone\": \"+216 92 640 851\",\n  \"dateNaissance\": \"2002-10-07\",\n  \"filiere\": \"RT\",\n  \"niveau\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Introuvable (404)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{gateway}}/api/etudiants/999",
+              "host": [
+                "{{gateway}}"
+              ],
+              "path": [
+                "api",
+                "etudiants",
+                "999"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2. Modules & Cours",
+      "item": [
+        {
+          "name": "Lister les modules",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{gateway}}/api/modules",
+              "host": [
+                "{{gateway}}"
+              ],
+              "path": [
+                "api",
+                "modules"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cours d'un module (OneToMany)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{gateway}}/api/modules/1/cours",
+              "host": [
+                "{{gateway}}"
+              ],
+              "path": [
+                "api",
+                "modules",
+                "1",
+                "cours"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Créer un module",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{gateway}}/api/modules",
+              "host": [
+                "{{gateway}}"
+              ],
+              "path": [
+                "api",
+                "modules"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"UE-CLOUD\",\n  \"intitule\": \"Cloud Computing et DevOps\",\n  \"semestre\": \"S9\",\n  \"coefficient\": 2.0,\n  \"credits\": 4\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Lister les cours",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{gateway}}/api/cours",
+              "host": [
+                "{{gateway}}"
+              ],
+              "path": [
+                "api",
+                "cours"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Consulter un cours (avec module)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{gateway}}/api/cours/1",
+              "host": [
+                "{{gateway}}"
+              ],
+              "path": [
+                "api",
+                "cours",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cours par module",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{gateway}}/api/cours/module/3",
+              "host": [
+                "{{gateway}}"
+              ],
+              "path": [
+                "api",
+                "cours",
+                "module",
+                "3"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Rechercher des cours",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{gateway}}/api/cours/search?titre=tp&enseignant=mansour",
+              "host": [
+                "{{gateway}}"
+              ],
+              "path": [
+                "api",
+                "cours",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "titre",
+                  "value": "tp"
+                },
+                {
+                  "key": "enseignant",
+                  "value": "mansour"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Capacité d'un cours",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{gateway}}/api/cours/6/capacite",
+              "host": [
+                "{{gateway}}"
+              ],
+              "path": [
+                "api",
+                "cours",
+                "6",
+                "capacite"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Créer un cours",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{gateway}}/api/cours",
+              "host": [
+                "{{gateway}}"
+              ],
+              "path": [
+                "api",
+                "cours"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"JEE2-TD\",\n  \"titre\": \"TD Spring Cloud Gateway\",\n  \"description\": \"Routage, prédicats et filtres\",\n  \"volumeHoraire\": 14,\n  \"enseignant\": \"Dr. Hela Ben Amor\",\n  \"capaciteMax\": 30,\n  \"type\": \"TD\",\n  \"moduleId\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3. Inscriptions (orchestrateur)",
+      "item": [
+        {
+          "name": "Lister (enrichies via Feign)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{gateway}}/api/inscriptions",
+              "host": [
+                "{{gateway}}"
+              ],
+              "path": [
+                "api",
+                "inscriptions"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Consulter l'inscription 1 (@Transient remplis)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{gateway}}/api/inscriptions/1",
+              "host": [
+                "{{gateway}}"
+              ],
+              "path": [
+                "api",
+                "inscriptions",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Inscriptions d'un étudiant",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{gateway}}/api/inscriptions/etudiant/1",
+              "host": [
+                "{{gateway}}"
+              ],
+              "path": [
+                "api",
+                "inscriptions",
+                "etudiant",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Relevé de notes (moyenne pondérée)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{gateway}}/api/inscriptions/etudiant/1/releve",
+              "host": [
+                "{{gateway}}"
+              ],
+              "path": [
+                "api",
+                "inscriptions",
+                "etudiant",
+                "1",
+                "releve"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Inscrits à un cours",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{gateway}}/api/inscriptions/cours/6",
+              "host": [
+                "{{gateway}}"
+              ],
+              "path": [
+                "api",
+                "inscriptions",
+                "cours",
+                "6"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Inscrire (201)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{gateway}}/api/inscriptions",
+              "host": [
+                "{{gateway}}"
+              ],
+              "path": [
+                "api",
+                "inscriptions"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"etudiantId\": 9,\n  \"coursId\": 2,\n  \"anneeUniversitaire\": \"2026-2027\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Inscrire - doublon (409)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{gateway}}/api/inscriptions",
+              "host": [
+                "{{gateway}}"
+              ],
+              "path": [
+                "api",
+                "inscriptions"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"etudiantId\": 1,\n  \"coursId\": 1,\n  \"anneeUniversitaire\": \"2026-2027\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Inscrire - cours complet (409)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{gateway}}/api/inscriptions",
+              "host": [
+                "{{gateway}}"
+              ],
+              "path": [
+                "api",
+                "inscriptions"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"etudiantId\": 8,\n  \"coursId\": 6\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Inscrire - étudiant inexistant (404)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{gateway}}/api/inscriptions",
+              "host": [
+                "{{gateway}}"
+              ],
+              "path": [
+                "api",
+                "inscriptions"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"etudiantId\": 999,\n  \"coursId\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Valider une inscription",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{gateway}}/api/inscriptions/9/statut",
+              "host": [
+                "{{gateway}}"
+              ],
+              "path": [
+                "api",
+                "inscriptions",
+                "9",
+                "statut"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"statut\": \"VALIDEE\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Saisir une note",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{gateway}}/api/inscriptions/9/note",
+              "host": [
+                "{{gateway}}"
+              ],
+              "path": [
+                "api",
+                "inscriptions",
+                "9",
+                "note"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"note\": 15.5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Note invalide (400)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{gateway}}/api/inscriptions/9/note",
+              "host": [
+                "{{gateway}}"
+              ],
+              "path": [
+                "api",
+                "inscriptions",
+                "9",
+                "note"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"note\": 25\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "4. Résilience (démo de panne)",
+      "item": [
+        {
+          "name": "État des disjoncteurs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{inscription}}/actuator/circuitbreakers",
+              "host": [
+                "{{inscription}}"
+              ],
+              "path": [
+                "actuator",
+                "circuitbreakers"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Événements ETUDIANT-SERVICE",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{inscription}}/actuator/circuitbreakerevents/ETUDIANT-SERVICE",
+              "host": [
+                "{{inscription}}"
+              ],
+              "path": [
+                "actuator",
+                "circuitbreakerevents",
+                "ETUDIANT-SERVICE"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Santé de l'orchestrateur",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{inscription}}/actuator/health",
+              "host": [
+                "{{inscription}}"
+              ],
+              "path": [
+                "actuator",
+                "health"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "[panne] Inscription 1 : réponse dégradée 200",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{gateway}}/api/inscriptions/1",
+              "host": [
+                "{{gateway}}"
+              ],
+              "path": [
+                "api",
+                "inscriptions",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "[panne] Inscrire : 503",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{gateway}}/api/inscriptions",
+              "host": [
+                "{{gateway}}"
+              ],
+              "path": [
+                "api",
+                "inscriptions"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"etudiantId\": 10,\n  \"coursId\": 3\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "[panne] Appel direct via Gateway : fallback 503",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{gateway}}/api/etudiants/1",
+              "host": [
+                "{{gateway}}"
+              ],
+              "path": [
+                "api",
+                "etudiants",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "gateway",
+      "value": "http://localhost:8888"
+    },
+    {
+      "key": "eureka",
+      "value": "http://localhost:8761"
+    },
+    {
+      "key": "inscription",
+      "value": "http://localhost:8083"
+    }
+  ]
+}

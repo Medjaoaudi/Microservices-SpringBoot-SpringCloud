@@ -1,0 +1,42 @@
+# Bases MySQL pour le profil "mysql" (le profil par défaut H2 n'a besoin de rien).
+#   docker compose up -d
+#   puis : SPRING_PROFILE=mysql ./start-all.sh   |   set SPRING_PROFILE=mysql && start-all.bat
+#
+# Un seul serveur MySQL héberge 3 bases TOTALEMENT INDÉPENDANTES (etudiant_db, cours_db, inscription_db) :
+# aucun service n'accède à la base d'un autre (pas de jointure ni de clé étrangère inter-bases).
+# En production on placerait chaque base sur son propre serveur.
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: scolarite-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      TZ: Africa/Tunis
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./docker/mysql-init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-proot"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  phpmyadmin:
+    image: phpmyadmin:5.2
+    container_name: scolarite-phpmyadmin
+    restart: unless-stopped
+    environment:
+      PMA_HOST: mysql
+      PMA_USER: root
+      PMA_PASSWORD: root
+    ports:
+      - "8090:80"
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+volumes:
+  mysql-data:

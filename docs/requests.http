@@ -1,0 +1,258 @@
+### Scolarité universitaire - requêtes via l'API Gateway (VS Code REST Client / IntelliJ HTTP Client)
+### Démo de panne : exécuter `stop-service etudiant` avant la section 4.
+
+@gateway = http://localhost:8888
+@eureka = http://localhost:8761
+@inscription = http://localhost:8083
+
+# ======================================================================
+# 0. Infrastructure
+# ======================================================================
+
+### Registre Eureka (JSON)
+GET {{eureka}}/eureka/apps
+
+### Routes de la Gateway
+GET {{gateway}}/actuator/gateway/routes
+
+### Routage dynamique (discovery locator)
+GET {{gateway}}/etudiant-service/api/etudiants?size=3
+
+# ======================================================================
+# 1. Étudiants
+# ======================================================================
+
+### Lister (paginé, trié)
+GET {{gateway}}/api/etudiants?page=0&size=5&sort=nom,asc
+
+### Consulter par id
+GET {{gateway}}/api/etudiants/1
+
+### Consulter par matricule
+GET {{gateway}}/api/etudiants/matricule/ETU-2026-003
+
+### Rechercher (nom, filière, niveau)
+GET {{gateway}}/api/etudiants/search?nom=ben&filiere=GL&niveau=5
+
+### Existe ?
+GET {{gateway}}/api/etudiants/exists/1
+
+### Créer
+POST {{gateway}}/api/etudiants
+Content-Type: application/json
+
+{
+  "matricule": "ETU-2026-011",
+  "nom": "Karray",
+  "prenom": "Malek",
+  "email": "malek.karray@etudiant.eps.tn",
+  "telephone": "+216 22 345 678",
+  "dateNaissance": "2003-04-12",
+  "filiere": "GL",
+  "niveau": 5
+}
+
+### Créer - données invalides (400)
+POST {{gateway}}/api/etudiants
+Content-Type: application/json
+
+{
+  "matricule": "X",
+  "nom": "",
+  "prenom": "Test",
+  "email": "pas-un-email",
+  "filiere": "GL",
+  "niveau": 9
+}
+
+### Créer - matricule en double (409)
+POST {{gateway}}/api/etudiants
+Content-Type: application/json
+
+{
+  "matricule": "ETU-2026-001",
+  "nom": "Doublon",
+  "prenom": "Test",
+  "email": "doublon@etudiant.eps.tn",
+  "filiere": "GL",
+  "niveau": 5
+}
+
+### Modifier
+PUT {{gateway}}/api/etudiants/10
+Content-Type: application/json
+
+{
+  "matricule": "ETU-2026-010",
+  "nom": "Dridi",
+  "prenom": "Emna",
+  "email": "emna.dridi@etudiant.eps.tn",
+  "telephone": "+216 92 640 851",
+  "dateNaissance": "2002-10-07",
+  "filiere": "RT",
+  "niveau": 5
+}
+
+### Introuvable (404)
+GET {{gateway}}/api/etudiants/999
+
+# ======================================================================
+# 2. Modules & Cours
+# ======================================================================
+
+### Lister les modules
+GET {{gateway}}/api/modules
+
+### Cours d'un module (OneToMany)
+GET {{gateway}}/api/modules/1/cours
+
+### Créer un module
+POST {{gateway}}/api/modules
+Content-Type: application/json
+
+{
+  "code": "UE-CLOUD",
+  "intitule": "Cloud Computing et DevOps",
+  "semestre": "S9",
+  "coefficient": 2.0,
+  "credits": 4
+}
+
+### Lister les cours
+GET {{gateway}}/api/cours
+
+### Consulter un cours (avec module)
+GET {{gateway}}/api/cours/1
+
+### Cours par module
+GET {{gateway}}/api/cours/module/3
+
+### Rechercher des cours
+GET {{gateway}}/api/cours/search?titre=tp&enseignant=mansour
+
+### Capacité d'un cours
+GET {{gateway}}/api/cours/6/capacite
+
+### Créer un cours
+POST {{gateway}}/api/cours
+Content-Type: application/json
+
+{
+  "code": "JEE2-TD",
+  "titre": "TD Spring Cloud Gateway",
+  "description": "Routage, prédicats et filtres",
+  "volumeHoraire": 14,
+  "enseignant": "Dr. Hela Ben Amor",
+  "capaciteMax": 30,
+  "type": "TD",
+  "moduleId": 1
+}
+
+# ======================================================================
+# 3. Inscriptions (orchestrateur)
+# ======================================================================
+
+### Lister (enrichies via Feign)
+GET {{gateway}}/api/inscriptions
+
+### Consulter l'inscription 1 (@Transient remplis)
+GET {{gateway}}/api/inscriptions/1
+
+### Inscriptions d'un étudiant
+GET {{gateway}}/api/inscriptions/etudiant/1
+
+### Relevé de notes (moyenne pondérée)
+GET {{gateway}}/api/inscriptions/etudiant/1/releve
+
+### Inscrits à un cours
+GET {{gateway}}/api/inscriptions/cours/6
+
+### Inscrire (201)
+POST {{gateway}}/api/inscriptions
+Content-Type: application/json
+
+{
+  "etudiantId": 9,
+  "coursId": 2,
+  "anneeUniversitaire": "2026-2027"
+}
+
+### Inscrire - doublon (409)
+POST {{gateway}}/api/inscriptions
+Content-Type: application/json
+
+{
+  "etudiantId": 1,
+  "coursId": 1,
+  "anneeUniversitaire": "2026-2027"
+}
+
+### Inscrire - cours complet (409)
+POST {{gateway}}/api/inscriptions
+Content-Type: application/json
+
+{
+  "etudiantId": 8,
+  "coursId": 6
+}
+
+### Inscrire - étudiant inexistant (404)
+POST {{gateway}}/api/inscriptions
+Content-Type: application/json
+
+{
+  "etudiantId": 999,
+  "coursId": 1
+}
+
+### Valider une inscription
+PUT {{gateway}}/api/inscriptions/9/statut
+Content-Type: application/json
+
+{
+  "statut": "VALIDEE"
+}
+
+### Saisir une note
+PUT {{gateway}}/api/inscriptions/9/note
+Content-Type: application/json
+
+{
+  "note": 15.5
+}
+
+### Note invalide (400)
+PUT {{gateway}}/api/inscriptions/9/note
+Content-Type: application/json
+
+{
+  "note": 25
+}
+
+# ======================================================================
+# 4. Résilience (démo de panne)
+# ======================================================================
+
+### État des disjoncteurs
+GET {{inscription}}/actuator/circuitbreakers
+
+### Événements ETUDIANT-SERVICE
+GET {{inscription}}/actuator/circuitbreakerevents/ETUDIANT-SERVICE
+
+### Santé de l'orchestrateur
+GET {{inscription}}/actuator/health
+
+### [panne] Inscription 1 : réponse dégradée 200
+GET {{gateway}}/api/inscriptions/1
+
+### [panne] Inscrire : 503
+POST {{gateway}}/api/inscriptions
+Content-Type: application/json
+
+{
+  "etudiantId": 10,
+  "coursId": 3
+}
+
+### [panne] Appel direct via Gateway : fallback 503
+GET {{gateway}}/api/etudiants/1
