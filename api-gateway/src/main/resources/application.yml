@@ -1,0 +1,122 @@
+server:
+  port: 8888
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      # Les en-têtes X-Forwarded-* ne sont transmis que pour des clients de confiance
+      # (sécurité Gateway >= 4.2.3). En local : le navigateur / Swagger / front sur la même machine.
+      trusted-proxies: "127\\.0\\.0\\.1|0:0:0:0:0:0:0:1|::1|localhost|192\\.168\\.\\d+\\.\\d+|172\\.\\d+\\.\\d+\\.\\d+|10\\.\\d+\\.\\d+\\.\\d+"
+      # 1) Routage DYNAMIQUE : toute instance Eureka est joignable via /<nom-service>/**
+      #    ex. http://localhost:8888/etudiant-service/api/etudiants
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+      # 2) CORS global pour le front-end (Vite 5173 / Angular 4200)
+      globalcors:
+        add-to-simple-url-handler-mapping: true
+        cors-configurations:
+          '[/**]':
+            allowed-origin-patterns:
+              - "http://localhost:*"
+              - "http://127.0.0.1:*"
+            allowed-methods: "*"
+            allowed-headers: "*"
+            max-age: 3600
+      # 3) Routage STATIQUE : lb://NOM-SERVICE => résolu par Eureka + LoadBalancer
+      routes:
+        - id: etudiant-service
+          uri: lb://ETUDIANT-SERVICE
+          predicates:
+            - Path=/api/etudiants/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: etudiantServiceCB
+                fallbackUri: forward:/fallback/etudiant-service
+        - id: cours-service
+          uri: lb://COURS-SERVICE
+          predicates:
+            - Path=/api/cours/**,/api/modules/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: coursServiceCB
+                fallbackUri: forward:/fallback/cours-service
+        - id: inscription-service
+          uri: lb://INSCRIPTION-SERVICE
+          predicates:
+            - Path=/api/inscriptions/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: inscriptionServiceCB
+                fallbackUri: forward:/fallback/inscription-service
+        # 4) Proxy des documentations OpenAPI pour le Swagger agrégé
+        - id: etudiant-openapi
+          uri: lb://ETUDIANT-SERVICE
+          predicates:
+            - Path=/v3/api-docs/etudiant
+          filters:
+            - SetPath=/v3/api-docs
+        - id: cours-openapi
+          uri: lb://COURS-SERVICE
+          predicates:
+            - Path=/v3/api-docs/cours
+          filters:
+            - SetPath=/v3/api-docs
+        - id: inscription-openapi
+          uri: lb://INSCRIPTION-SERVICE
+          predicates:
+            - Path=/v3/api-docs/inscription
+          filters:
+            - SetPath=/v3/api-docs
+    # Rafraîchissement rapide de la liste des instances (démo de panne)
+    loadbalancer:
+      cache:
+        ttl: 5s
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka}
+    registry-fetch-interval-seconds: 5
+  instance:
+    prefer-ip-address: true
+    lease-renewal-interval-in-seconds: 5
+    lease-expiration-duration-in-seconds: 10
+
+# Swagger UI unique avec sélecteur des 3 APIs : http://localhost:8888/swagger-ui.html
+springdoc:
+  api-docs:
+    path: /v3/api-docs/gateway
+  swagger-ui:
+    path: /swagger-ui.html
+    urls:
+      - name: "1. Etudiants (etudiant-service)"
+        url: /v3/api-docs/etudiant
+      - name: "2. Modules et Cours (cours-service)"
+        url: /v3/api-docs/cours
+      - name: "3. Inscriptions (inscription-service)"
+        url: /v3/api-docs/inscription
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,gateway,circuitbreakers,circuitbreakerevents
+  endpoint:
+    health:
+      show-details: always
+    gateway:
+      access: unrestricted
+  health:
+    circuitbreakers:
+      enabled: true
+
+logging:
+  level:
+    tn.eps.scolarite: INFO

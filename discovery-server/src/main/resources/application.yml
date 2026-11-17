@@ -1,0 +1,27 @@
+server:
+  port: 8761
+
+spring:
+  application:
+    name: discovery-server
+
+eureka:
+  instance:
+    hostname: localhost
+  client:
+    # Le serveur ne s'enregistre pas lui-même et ne récupère pas de registre
+    register-with-eureka: false
+    fetch-registry: false
+  server:
+    # Mode démo : on désactive l'auto-préservation pour qu'un service arrêté
+    # disparaisse rapidement du tableau de bord
+    enable-self-preservation: false
+    eviction-interval-timer-in-ms: 5000
+    response-cache-update-interval-ms: 3000
+    wait-time-in-ms-when-sync-empty: 0
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
