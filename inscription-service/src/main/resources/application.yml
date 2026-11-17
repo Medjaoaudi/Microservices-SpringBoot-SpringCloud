@@ -1,0 +1,105 @@
+server:
+  port: 8083
+  forward-headers-strategy: framework
+
+spring:
+  application:
+    name: inscription-service
+  profiles:
+    # H2 par défaut (aucune installation requise). MySQL : --spring.profiles.active=mysql
+    default: h2
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+  cloud:
+    openfeign:
+      # Chaque client Feign est enveloppé dans un Circuit Breaker Spring Cloud (implémentation Resilience4j)
+      circuitbreaker:
+        enabled: true
+      client:
+        config:
+          default:
+            connect-timeout: 2000   # 2 s pour établir la connexion
+            read-timeout: 3000      # 3 s pour obtenir la réponse
+    # Liste des instances rafraîchie toutes les 5 s (Eureka -> LoadBalancer)
+    loadbalancer:
+      cache:
+        ttl: 5s
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka}
+    registry-fetch-interval-seconds: 5
+  instance:
+    prefer-ip-address: true
+    lease-renewal-interval-in-seconds: 5
+    lease-expiration-duration-in-seconds: 10
+
+# ---------------------------------------------------------------- Resilience4j
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        register-health-indicator: true
+        # Un circuit OPEN = service PARTENAIRE en panne : l'orchestrateur, lui, reste UP (mode dégradé)
+        allow-health-indicator-to-fail: false
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: 5                       # fenêtre des 5 derniers appels
+        minimum-number-of-calls: 3                   # évaluation dès 3 appels (démo réactive)
+        failure-rate-threshold: 50                   # >= 50 % d'échecs => OPEN
+        wait-duration-in-open-state: 10s             # OPEN pendant 10 s
+        permitted-number-of-calls-in-half-open-state: 2
+        automatic-transition-from-open-to-half-open-enabled: true
+        event-consumer-buffer-size: 20
+        # Un 404 n'est pas une panne : il ne doit pas ouvrir le circuit
+        ignore-exceptions:
+          - feign.FeignException$NotFound
+    instances:
+      ETUDIANT-SERVICE:
+        base-config: default
+      COURS-SERVICE:
+        base-config: default
+  timelimiter:
+    configs:
+      default:
+        timeout-duration: 4s                         # au-delà : TimeoutException => fallback
+        cancel-running-future: true
+    instances:
+      ETUDIANT-SERVICE:
+        base-config: default
+      COURS-SERVICE:
+        base-config: default
+
+# Retry Feign (backoff exponentiel x1.5) : 3 tentatives, 200 ms puis 300 ms, plafond 1 s
+scolarite:
+  feign:
+    retry:
+      period-ms: 200
+      max-period-ms: 1000
+      max-attempts: 3
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,circuitbreakers,circuitbreakerevents
+  endpoint:
+    health:
+      show-details: always
+  health:
+    circuitbreakers:
+      enabled: true
+
+logging:
+  level:
+    tn.eps.scolarite: INFO
