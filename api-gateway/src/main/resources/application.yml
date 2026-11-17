@@ -108,6 +108,10 @@ management:
     web:
       exposure:
         include: health,info,gateway,circuitbreakers,circuitbreakerevents
+      # Les endpoints Actuator de la Gateway ont leur propre CORS (utilisé par le tableau de bord du front)
+      cors:
+        allowed-origin-patterns: "http://localhost:*,http://127.0.0.1:*"
+        allowed-methods: GET
   endpoint:
     health:
       show-details: always
