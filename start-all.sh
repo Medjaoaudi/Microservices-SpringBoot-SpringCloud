@@ -31,7 +31,12 @@ start_service() { # $1=nom du module
 
 if [ "$1" != "--no-build" ]; then
   echo "==> Build Maven (mvn clean package -DskipTests)"
-  mvn -q clean package -DskipTests
+  if ! mvn -q clean package -DskipTests; then
+    # Dossier synchronisé (OneDrive...) : un fichier de target/ peut être verrouillé un instant
+    echo "    'clean' impossible (fichier verrouillé ?) -> nouvelle tentative sans clean"
+    sleep 3
+    mvn -q package -DskipTests
+  fi
 fi
 
 echo "==> 1/4 discovery-server (Eureka, port 8761)"
@@ -55,10 +60,13 @@ echo "==> 4/4 frontend (port 5173)"
 if command -v npm > /dev/null 2>&1 && [ -d frontend ]; then
   ( cd frontend
     [ -d node_modules ] || npm install --no-audit --no-fund > ../logs/frontend-install.log 2>&1
-    nohup npm run dev > ../logs/frontend.log 2>&1 & )
+    # Version compilée (rapide, rien à compiler pendant la démo) ; mode dev si le build est absent
+    if [ "$1" != "--no-build" ] || [ ! -d dist ]; then npm run build > ../logs/frontend-build.log 2>&1 || true; fi
+    if [ -d dist ]; then nohup npm run preview > ../logs/frontend.log 2>&1 &
+    else nohup npm run dev > ../logs/frontend.log 2>&1 & fi )
   echo "  -> frontend démarré - logs/frontend.log"
 else
-  echo "  (npm introuvable : frontend ignoré)"
+  echo "  (npm ou dossier frontend introuvable : frontend ignoré)"
 fi
 
 cat <<EOF
