@@ -99,9 +99,14 @@ Chaque service suit la même organisation en couches :
 - `curl` (présent sur Windows 10/11, Linux, macOS)
 - *(optionnel)* Docker Desktop pour le profil MySQL
 
-> ⚠️ **Conseil pour la soutenance :** évitez de lancer le projet depuis un dossier synchronisé (OneDrive, Dropbox…).
-> La synchronisation verrouille parfois des fichiers de `target/` et fait échouer `mvn clean` (les scripts relancent
-> alors automatiquement un `mvn package` sans `clean`). Copiez le projet dans `C:\dev\` par exemple.
+> ⚠️ **Conseil pour la soutenance (Windows) :** sous Windows, `mvn clean` échoue si un autre programme garde un
+> dossier `target/` ouvert : synchronisation **OneDrive/Dropbox**, ou l'extension **Java de VS Code** (serveur de langage
+> `redhat.java`) quand le projet est ouvert dans l'éditeur. Les scripts relancent alors automatiquement un
+> `mvn package` sans `clean`. Pour éviter le problème, copiez le projet hors de OneDrive (ex. `C:\dev\`) ou fermez
+> VS Code avant un `mvn clean install`.
+>
+> Les fenêtres réduites ouvertes par `start-all.bat` **sont** les services : ne les fermez pas et n'y tapez pas
+> `Ctrl+C` (utilisez `stop-service.bat` / `stop-all.bat`).
 
 ---
 
